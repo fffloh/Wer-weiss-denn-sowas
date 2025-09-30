@@ -23,19 +23,19 @@ html,body{
 .wrap{
   max-width:2200px;
   margin:24px auto;
-  padding:20px 50px 50px; /* Oben verringert von 50px auf 20px */
+  padding:20px 50px 50px; /* Oben verringert */
   box-sizing:border-box;
 }
 
 .title {
   text-align:center;
   margin-bottom:40px; 
-Font-size: 32px;
+  font-size:32px;
 }
 .title h1{
   margin:0 auto;
-  max-width:80%; /* 80% der Breite */
-  font-size: clamp(50px, 12vw, 70px); /* dynamische Größe */
+  max-width:80%;
+  font-size: clamp(50px, 12vw, 70px);
   font-weight:700;
   letter-spacing:1px;
   background:linear-gradient(90deg, #ffd400 0%, #fff6a5 50%, #ffd400 100%);
@@ -116,23 +116,19 @@ Font-size: 32px;
   background: linear-gradient(180deg, rgba(255,255,255,0.25), rgba(0,0,0,0.1));
 }
 
-.cat.selected::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 160%;
-  height: 2px;
-  background: var(--accent);
-  transform: rotate(-30deg);
-  transform-origin: bottom left;
-  pointer-events: none;
-  z-index: 2;
-}
-
 .cat .text {
   position: relative;
   z-index: 3;
+}
+
+/* SVG Linie */
+.cat svg {
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  pointer-events:none;
+  z-index:2;
 }
 
 /* --- Overlay Styling --- */
@@ -165,7 +161,7 @@ Font-size: 32px;
   top:8px;
   right:10px;
   font-size:22px;
-  color:#fff; /* weißes Kreuz */
+  color:#fff;
   background:none;
   border:none;
   cursor:pointer;
@@ -210,7 +206,7 @@ Font-size: 32px;
     </section>
   </div>
 
-  <!-- Neuer Button unten -->
+  <!-- Button unten -->
   <div style="text-align:center; margin-top:40px;">
     <button class="show-btn" id="showImageBtn">Bild anzeigen</button>
   </div>
@@ -245,11 +241,18 @@ function renderTeam(team){
   const container = team===1?list1:list2;
   container.innerHTML='';
   categories.forEach((label,idx)=>{
+    const isSelected = selected[team][idx];
     const btn=document.createElement('div');
-    btn.className='cat'+(selected[team][idx]?' selected':'');
+    btn.className='cat'+(isSelected?' selected':'');
     btn.setAttribute('data-team',team);
     btn.setAttribute('data-idx',idx);
-    btn.innerHTML=`<div class="text">${label}</div>`;
+    btn.innerHTML = `
+      <div class="text">${label}</div>
+      ${isSelected ? `
+        <svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+          <line x1="0" y1="100%" x2="100%" y2="0" stroke="var(--accent)" stroke-width="3"/>
+        </svg>` : ""}
+    `;
     btn.addEventListener('click',()=>{
       selected[team][idx]=!selected[team][idx];
       renderTeam(team);
