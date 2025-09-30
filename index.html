@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Wer weiß denn sowas? — Spielmaster Board</title>
+<style>
+:root{
+  --bg:#071539;
+  --panel:#0b2340;
+  --accent:#ffd400;
+  --muted:#c8d7ea;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+}
+
+html,body{
+  height:100%;
+  margin:0;
+  background: linear-gradient(180deg,var(--bg) 0%, #05264a 100%);
+  color:var(--muted);
+}
+
+.wrap{
+  max-width:2200px;
+  margin:24px auto;
+  padding:20px 50px 50px; /* Oben verringert von 50px auf 20px */
+  box-sizing:border-box;
+}
+
+.title {
+  text-align:center;
+  margin-bottom:40px; 
+Font-size: 32px;
+}
+.title h1{
+  margin:0 auto;
+  max-width:80%; /* 80% der Breite */
+  font-size: clamp(50px, 12vw, 90px); /* dynamische Größe */
+  font-weight:700;
+  letter-spacing:1px;
+  background:linear-gradient(90deg, #ffd400 0%, #fff6a5 50%, #ffd400 100%);
+  -webkit-background-clip:text;
+  color:transparent;
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.6));
+  text-align:center;
+}
+
+.board{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+}
+
+.team {
+  background: linear-gradient(180deg,var(--panel), rgba(10,50,90,0.9));
+  border-radius:16px;
+  padding:16px;
+  box-shadow: 0 8px 20px rgba(2,8,20,0.6);
+}
+
+.team-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:14px;
+}
+
+.team-name .names{
+  font-weight:700;
+  color:var(--accent);
+  font-size:32px;
+}
+.team-name .count{
+  font-size:26px;
+  opacity:0.85;
+}
+
+.reset-btn,
+.show-btn{
+  background:transparent;
+  border:1px solid rgba(255,255,255,0.1);
+  color:var(--muted);
+  padding:5px 10px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:13px;
+}
+.reset-btn:hover,
+.show-btn:hover{ opacity:1; background:rgba(255,255,255,0.05); }
+
+.categories{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:12px;
+}
+
+.cat {
+  position: relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:16px 8px;
+  border-radius:12px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06));
+  border:1px solid rgba(255,255,255,0.05);
+  cursor:pointer;
+  transition: transform .1s ease, background .15s ease;
+  font-size:24px;
+  min-height:90px;
+  overflow:hidden;
+}
+.cat:active{ transform:scale(.97); }
+
+.cat.selected {
+  background: linear-gradient(180deg, rgba(255,255,255,0.25), rgba(0,0,0,0.1));
+}
+
+.cat.selected::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 160%;
+  height: 2px;
+  background: var(--accent);
+  transform: rotate(-30deg);
+  transform-origin: bottom left;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.cat .text {
+  position: relative;
+  z-index: 3;
+}
+
+/* --- Overlay Styling --- */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  align-items:center;
+  justify-content:center;
+  z-index:1000;
+}
+.overlay-content {
+  position: relative;
+  background: transparent; 
+  border-radius: 14px;
+  padding: 0;
+  max-width:90%;
+  max-height:90%;
+  box-shadow: none;
+}
+.overlay-content img{
+  max-width:100%;
+  max-height:80vh;
+  border-radius:12px;
+  display:block;
+}
+.close-btn {
+  position:absolute;
+  top:8px;
+  right:10px;
+  font-size:22px;
+  color:#fff; /* weißes Kreuz */
+  background:none;
+  border:none;
+  cursor:pointer;
+}
+.close-btn:hover { opacity:0.8; }
+
+@media(max-width:760px){
+  .board{ grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="title">
+    <h1>Wer weiß denn sowas?</h1>
+    <div class="subtitle">Was weiß Heiko? • 60th Edition</div>
+  </div>
+
+  <div class="board">
+    <!-- Team 1 -->
+    <section class="team">
+      <div class="team-header">
+        <div class="team-name">
+          <div class="names">Heiko und Heike</div>
+          <div class="count" id="count-1"></div>
+        </div>
+        <button class="reset-btn" data-team="1">Zurücksetzen</button>
+      </div>
+      <div class="categories" id="list-1"></div>
+    </section>
+
+    <!-- Team 2 -->
+    <section class="team">
+      <div class="team-header">
+        <div class="team-name">
+          <div class="names">Karsten und Stefan</div>
+          <div class="count" id="count-2"></div>
+        </div>
+        <button class="reset-btn" data-team="2">Zurücksetzen</button>
+      </div>
+      <div class="categories" id="list-2"></div>
+    </section>
+  </div>
+
+  <!-- Neuer Button unten -->
+  <div style="text-align:center; margin-top:40px;">
+    <button class="show-btn" id="showImageBtn">Bild anzeigen</button>
+  </div>
+</div>
+
+<!-- Overlay -->
+<div class="overlay" id="overlay">
+  <div class="overlay-content">
+    <button class="close-btn" id="closeOverlay">✕</button>
+    <img src="bild.png" alt="Bildanzeige">
+  </div>
+</div>
+
+<script>
+const categories = [
+  "Urlaub / Reisen",
+  "Leben",
+  "Gesundheit",
+  "Freizeit / Hobbies",
+  "Kindheit",
+  "Familie",
+  "Berufliches",
+  "Ernährung",
+  "Film / Fernsehen / Bücher"
+];
+
+const selected = {1:Array(9).fill(false), 2:Array(9).fill(false)};
+const list1 = document.getElementById('list-1');
+const list2 = document.getElementById('list-2');
+
+function renderTeam(team){
+  const container = team===1?list1:list2;
+  container.innerHTML='';
+  categories.forEach((label,idx)=>{
+    const btn=document.createElement('div');
+    btn.className='cat'+(selected[team][idx]?' selected':'');
+    btn.setAttribute('data-team',team);
+    btn.setAttribute('data-idx',idx);
+    btn.innerHTML=`<div class="text">${label}</div>`;
+    btn.addEventListener('click',()=>{
+      selected[team][idx]=!selected[team][idx];
+      renderTeam(team);
+    });
+    container.appendChild(btn);
+  });
+}
+
+document.querySelectorAll('.reset-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const team=+btn.getAttribute('data-team');
+    selected[team]=Array(9).fill(false);
+    renderTeam(team);
+  });
+});
+
+// Overlay-Logik
+const overlay=document.getElementById("overlay");
+const showBtn=document.getElementById("showImageBtn");
+const closeBtn=document.getElementById("closeOverlay");
+
+showBtn.addEventListener("click",()=>{
+  overlay.style.display="flex";
+});
+
+closeBtn.addEventListener("click",()=>{
+  overlay.style.display="none";
+});
+
+renderTeam(1); 
+renderTeam(2);
+</script>
+</body>
+</html>
